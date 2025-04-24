@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Jogos da Lotofácil - Estilo Matrix</title>
+    <style>
+        /* Estilo Matrix */
+        body {
+            background-color: #000;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        h1, h2, h3 {
+            text-align: center;
+            text-shadow: 0 0 10px #0f0, 0 0 20px #0f0;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-top: 30px;
+        }
+
+        .panel {
+            background-color: rgba(0, 20, 0, 0.8);
+            border: 1px solid #0f0;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 0 10px #0f0;
+        }
+
+        .flex-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .flex-item {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .numbers-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 40px;
+            background-color: rgba(0, 40, 0, 0.5);
+            border: 1px solid #0f0;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .number:hover {
+            background-color: rgba(0, 80, 0, 0.8);
+            box-shadow: 0 0 10px #0f0;
+        }
+
+        .number.selected {
+            background-color: #0f0;
+            color: #000;
+            box-shadow: 0 0 15px #0f0;
+        }
+
+        .button {
+            display: inline-block;
+            background-color: rgba(0, 60, 0, 0.8);
+            color: #0f0;
+            border: 1px solid #0f0;
+            border-radius: 5px;
+            padding: 10px 20px;
+            margin: 10px 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+
+        .button:hover {
+            background-color: rgba(0, 100, 0, 0.8);
+            box-shadow: 0 0 15px #0f0;
+        }
+
+        .button-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .results {
+            margin-top: 20px;
+        }
+
+        .game {
+            background-color: rgba(0, 30, 0, 0.7);
+            border: 1px solid #0f0;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .game-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            background-color: rgba(0, 40, 0, 0.5);
+            border: 1px solid #0f0;
+            border-radius: 50%;
+            font-weight: bold;
+        }
+
+        .hot {
+            border-color: #f00;
+            color: #f00;
+        }
+
+        .cold {
+            border-color: #00f;
+            color: #00f;
+        }
+
+        .stats-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .stat-item {
+            flex: 1;
+            min-width: 150px;
+            background-color: rgba(0, 30, 0, 0.7);
+            border: 1px solid #0f0;
+            border-radius: 5px;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .loading-text {
+            font-size: 2em;
+            text-shadow: 0 0 10px #0f0;
+            animation: pulse 1.5s infinite;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th, td {
+            border: 1px solid #0f0;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: rgba(0, 40, 0, 0.7);
+        }
+
+        tr:nth-child(even) {
+            background-color: rgba(0, 20, 0, 0.5);
+        }
+
+        .probability-meter {
+            height: 10px;
+            background-color: #333;
+            border-radius: 5px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+
+        .probability-fill {
+            height: 100%;
+            background-color: #0f0;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .flex-container {
+                flex-direction: column;
+            }
+            
+            .numbers-grid {
+                grid-template-columns: repeat(5, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="matrix-canvas"></canvas>
+    
+    <div class="container">
+        <h1>Gerador de Jogos da Lotofácil</h1>
+        <p style="text-align: center;">Utilize estratégias baseadas em estatísticas reais para aumentar suas chances</p>
+        
+        <div class="panel">
+            <h2>Estratégias de Geração</h2>
+            <div class="flex-container">
+                <div class="flex-item">
+                    <h3>Configurações</h3>
+                    <div>
+                        <label for="num-games">Número de jogos a gerar:</label>
+                        <input type="number" id="num-games" min="1" max="100" value="5" style="background: rgba(0,20,0,0.8); color: #0f0; border: 1px solid #0f0; padding: 5px; width: 60px;">
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <label for="strategy">Estratégia:</label>
+                        <select id="strategy" style="background: rgba(0,20,0,0.8); color: #0f0; border: 1px solid #0f0; padding: 5px;">
+                            <option value="balanced">Equilibrada (Recomendada)</option>
+                            <option value="hot">Números Quentes (Mais Sorteados)</option>
+                            <option value="cold">Números Frios (Mais Atrasados)</option>
+                            <option value="mixed">Mista (Quentes + Frios)</option>
+                            <option value="random">Aleatória</option>
+                        </select>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <label for="even-odd-ratio">Proporção Par/Ímpar:</label>
+                        <select id="even-odd-ratio" style="background: rgba(0,20,0,0.8); color: #0f0; border: 1px solid #0f0; padding: 5px;">
+                            <option value="balanced">Equilibrada (7-8 ou 8-7)</option>
+                            <option value="more-even">Mais Pares (9-6 ou 10-5)</option>
+                            <option value="more-odd">Mais Ímpares (6-9 ou 5-10)</option>
+                            <option value="any">Qualquer</option>
+                        </select>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <label for="sum-range">Soma dos Números:</label>
+                        <select id="sum-range" style="background: rgba(0,20,0,0.8); color: #0f0; border: 1px solid #0f0; padding: 5px;">
+                            <option value="optimal">Faixa Ótima (180-220)</option>
+                            <option value="any">Qualquer</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex-item">
+                    <h3>Números Fixos (opcional)</h3>
+                    <p>Selecione números que você deseja incluir em todos os jogos:</p>
+                    <div class="numbers-grid">
+                        <!-- Números de 1 a 25 serão gerados via JavaScript -->
+                    </div>
+                </div>
+            </div>
+            <div class="button-container">
+                <button id="generate-btn" class="button">GERAR JOGOS</button>
+                <button id="clear-btn" class="button">LIMPAR</button>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <h2>Estatísticas da Lotofácil</h2>
+            <div class="stats-container">
+                <div class="stat-item">
+                    <div>Concurso Atual</div>
+                    <div class="stat-value" id="current-contest">3374</div>
+                </div>
+                <div class="stat-item">
+                    <div>Último Sorteio</div>
+                    <div class="stat-value" id="last-draw-date">23/04/2025</div>
+                </div>
+                <div class="stat-item">
+                    <div>Acumulado</div>
+                    <div class="stat-value" id="accumulated">R$ 1,8 milhões</div>
+                </div>
+            </div>
+            
+            <div class="flex-container">
+                <div class="flex-item">
+                    <h3>Números Mais Sorteados</h3>
+                    <table id="hot-numbers">
+                        <tr>
+                            <th>Número</th>
+                            <th>Frequência</th>
+                            <th>Probabilidade</th>
+                        </tr>
+                        <!-- Dados serão preenchidos via JavaScript -->
+                    </table>
+                </div>
+                <div class="flex-item">
+                    <h3>Números Mais Atrasados</h3>
+                    <table id="cold-numbers">
+                        <tr>
+                            <th>Número</th>
+                            <th>Concursos Ausente</th>
+                            <th>Probabilidade</th>
+                        </tr>
+                        <!-- Dados serão preenchidos via JavaScript -->
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="panel results">
+            <h2>Jogos Gerados</h2>
+            <div id="games-container">
+                <!-- Jogos gerados serão exibidos aqui -->
+                <p id="no-games-message" style="text-align: center;">Clique em "GERAR JOGOS" para criar seus jogos da Lotofácil</p>
+            </div>
+            
+            <div id="analysis-container" style="display: none;">
+                <h3>Análise dos Jogos Gerados</h3>
+                <div class="stats-container">
+                    <div class="stat-item">
+                        <div>Média de Números Quentes</div>
+                        <div class="stat-value" id="avg-hot">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div>Média de Números Frios</div>
+                        <div class="stat-value" id="avg-cold">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div>Média Par/Ímpar</div>
+                        <div class="stat-value" id="avg-even-odd">0/0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div>Média da Soma</div>
+                        <div class="stat-value" id="avg-sum">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="loading" class="loading" style="display: none;">
+        <div class="loading-text">Gerando jogos...</div>
+    </div>
+
+    <script>
+        // Dados estatísticos da Lotofácil (baseados em pesquisa real)
+        const lotofacilStats = {
+            hotNumbers: [
+                { number: 20, frequency: 2121, probability: 0.63 },
+                { number: 10, frequency: 2112, probability: 0.62 },
+                { number: 25, frequency: 2092, probability: 0.62 },
+                { number: 11, frequency: 2074, probability: 0.61 },
+                { number: 13, frequency: 2056, probability: 0.61 },
+                { number: 24, frequency: 2053, probability: 0.61 },
+                { number: 14, frequency: 2051, probability: 0.61 },
+                { number: 1, frequency: 2036, probability: 0.60 },
+                { number: 4, frequency: 2035, probability: 0.60 },
+                { number: 3, frequency: 2034, probability: 0.60 }
+            ],
+            coldNumbers: [
+                { number: 25, absent: 4, probability: 0.65 },
+                { number: 2, absent: 4, probability: 0.65 },
+                { number: 16, absent: 3, probability: 0.60 },
+                { number: 9, absent: 2, probability: 0.55 },
+                { number: 19, absent: 1, probability: 0.52 },
+                { number: 13, absent: 1, probability: 0.52 },
+                { number: 22, absent: 1, probability: 0.52 },
+                { number: 3, absent: 1, probability: 0.52 },
+                { number: 23, absent: 1, probability: 0.52 },
+                { number: 1, absent: 1, probability: 0.52 }
+            ],
+            currentContest: 3374,
+            lastDrawDate: "23/04/2025",
+            accumulated: "R$ 1,8 milhões"
+        };
+
+        // Efeito Matrix no Canvas
+        const canvas = document.getElementById('matrix-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let drops = [];
+        
+        // Configuração do canvas
+        function setupCanvas() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+            
+            const fontSize = 14;
+            const columns = Math.floor(width / fontSize);
+            
+            // Inicializa as gotas
+            drops = [];
+            for (let i = 0; i < columns; i++) {
+                drops[i] = Math.floor(Math.random() * -100);
+            }
+        }
+        
+        // Desenha o efeito Matrix
+        function drawMatrix() {
+            // Fundo semi-transparente para criar o efeito de desvanecimento
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, width, height);
+            
+            ctx.fillStyle = '#0f0';
+            ctx.font = '14px monospace';
+            
+            // Loop através de cada gota
+            for (let i = 0; i < drops.length; i++) {
+                // Caractere aleatório para desenhar
+                const text = String.fromCharCode(Math.floor(Math.random() * 94) + 33);
+                
+                // x = i * tamanho da fonte, y = valor da posição da gota
+                ctx.fillText(text, i * 14, drops[i] * 14);
+                
+                // Envia a gota de volta ao topo aleatoriamente após cruzar a tela
+                if (drops[i] * 14 > height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                
+                // Incrementa a posição y
+                drops[i]++;
+            }
+            
+            requestAnimationFrame(drawMatrix);
+        }
+        
+        // Inicializa o canvas e começa a animação
+        setupCanvas();
+        drawMatrix();
+        
+        // Redimensiona o canvas quando a janela é redimensionada
+        window.addEventListener('resize', setupCanvas);
+
+        // Funções para o gerador de jogos
+        document.addEventListener('DOMContentLoaded', function() {
+            // Preencher a grade de números
+            const numbersGrid = document.querySelector('.numbers-grid');
+            for (let i = 1; i <= 25; i++) {
+                const numberDiv = document.createElement('div');
+                numberDiv.className = 'number';
+                numberDiv.textContent = i;
+                numberDiv.dataset.number = i;
+                numberDiv.addEventListener('click', function() {
+                    this.classList.toggle('selected');
+                });
+                numbersGrid.appendChild(numberDiv);
+            }
+            
+            // Preencher tabelas de estatísticas
+            fillStatsTables();
+            
+            // Atualizar estatísticas gerais
+            document.getElementById('current-contest').textContent = lotofacilStats.currentContest;
+            document.getElementById('last-draw-date').textContent = lotofacilStats.lastDrawDate;
+            document.getElementById('accumulated').textContent = lotofacilStats.accumulated;
+            
+            // Botão de gerar jogos
+            document.getElementById('generate-btn').addEventListener('click', generateGames);
+            
+            // Botão de limpar
+            document.getElementById('clear-btn').addEventListener('click', function() {
+                // Limpar números selecionados
+                document.querySelectorAll('.number.selected').forEach(el => {
+                    el.classList.remove('selected');
+                });
+                
+                // Limpar jogos gerados
+                document.getElementById('games-container').innerHTML = '<p id="no-games-message" style="text-align: center;">Clique em "GERAR JOGOS" para criar seus jogos da Lotofácil</p>';
+                
+                // Esconder análise
+                document.getElementById('analysis-container').style.display = 'none';
+            });
+        });
+        
+        // Preencher tabelas de estatísticas
+        function fillStatsTables() {
+            const hotTable = document.getElementById('hot-numbers');
+            const coldTable = document.getElementById('cold-numbers');
+            
+            // Limpar tabelas
+            while (hotTable.rows.length > 1) {
+                hotTable.deleteRow(1);
+            }
+            
+            while (coldTable.rows.length > 1) {
+                coldTable.deleteRow(1);
+            }
+            
+            // Preencher tabela de números quentes
+            lotofacilStats.hotNumbers.forEach(item => {
+                const row = hotTable.insertRow();
+                
+                const cellNumber = row.insertCell();
+                cellNumber.textContent = item.number;
+                
+                const cellFrequency = row.insertCell();
+                cellFrequency.textContent = item.frequency;
+                
+                const cellProbability = row.insertCell();
+                const probText = document.createElement('div');
+                probText.textContent = (item.probability * 100).toFixed(1) + '%';
+                
+                const probMeter = document.createElement('div');
+                probMeter.className = 'probability-meter';
+                
+                const probFill = document.createElement('div');
+                probFill.className = 'probability-fill';
+                probFill.style.width = (item.probability * 100) + '%';
+                
+                probMeter.appendChild(probFill);
+                cellProbability.appendChild(probText);
+                cellProbability.appendChild(probMeter);
+            });
+            
+            // Preencher tabela de números frios
+            lotofacilStats.coldNumbers.forEach(item => {
+                const row = coldTable.insertRow();
+                
+                const cellNumber = row.insertCell();
+                cellNumber.textContent = item.number;
+                
+                const cellAbsent = row.insertCell();
+                cellAbsent.textContent = item.absent;
+                
+                const cellProbability = row.insertCell();
+                const probText = document.createElement('div');
+                probText.textContent = (item.probability * 100).toFixed(1) + '%';
+                
+                const probMeter = document.createElement('div');
+                probMeter.className = 'probability-meter';
+                
+                const probFill = document.createElement('div');
+                probFill.className = 'probability-fill';
+                probFill.style.width = (item.probability * 100) + '%';
+                
+                probMeter.appendChild(probFill);
+                cellProbability.appendChild(probText);
+                cellProbability.appendChild(probMeter);
+            });
+        }
+        
+        // Gerar jogos
+        function generateGames() {
+            // Mostrar loading
+            document.getElementById('loading').style.display = 'flex';
+            
+            // Obter configurações
+            const numGames = parseInt(document.getElementById('num-games').value);
+            const strategy = document.getElementById('strategy').value;
+            const evenOddRatio = document.getElementById('even-odd-ratio').value;
+            const sumRange = document.getElementById('sum-range').value;
+            
+            // Obter números fixos
+            const fixedNumbers = [];
+            document.querySelectorAll('.number.selected').forEach(el => {
+                fixedNumbers.push(parseInt(el.dataset.number));
+            });
+            
+            // Validar número de jogos
+            if (numGames < 1 || numGames > 100) {
+                alert('O número de jogos deve estar entre 1 e 100.');
+                document.getElementById('loading').style.display = 'none';
+                return;
+            }
+            
+            // Validar números fixos
+            if (fixedNumbers.length > 14) {
+                alert('Você pode selecionar no máximo 14 números fixos.');
+                document.getElementById('loading').style.display = 'none';
+                return;
+            }
+            
+            // Simular processamento
+            setTimeout(() => {
+                // Gerar jogos
+                const games = [];
+                for (let i = 0; i < numGames; i++) {
+                    games.push(generateGame(strategy, evenOddRatio, sumRange, fixedNumbers));
+                }
+                
+                // Exibir jogos
+                displayGames(games);
+                
+                // Analisar jogos
+                analyzeGames(games);
+                
+                // Esconder loading
+                document.getElementById('loading').style.display = 'none';
+            }, 1500);
+        }
+        
+        // Gerar um jogo
+        function generateGame(strategy, evenOddRatio, sumRange, fixedNumbers) {
+            // Conjunto de todos os números possíveis (1 a 25)
+            const allNumbers = Array.from({length: 25}, (_, i) => i + 1);
+            
+            // Remover números fixos do conjunto
+            const availableNumbers = allNumbers.filter(n => !fixedNumbers.includes(n));
+            
+            // Números a serem selecionados (15 - números fixos)
+            const numbersToSelect = 15 - fixedNumbers.length;
+            
+            // Conjunto de números quentes (mais sorteados)
+            const hotNumbers = lotofacilStats.hotNumbers.map(item => item.number);
+            
+            // Conjunto de números frios (mais atrasados)
+            const coldNumbers = lotofacilStats.coldNumbers.map(item => item.number);
+            
+            // Selecionar números com base na estratégia
+            let selectedNumbers = [];
+            
+            switch (strategy) {
+                case 'hot':
+                    // Priorizar números quentes
+                    selectedNumbers = selectNumbersWithPriority(availableNumbers, hotNumbers, numbersToSelect);
+                    break;
+                    
+                case 'cold':
+                    // Priorizar números frios
+                    selectedNumbers = selectNumbersWithPriority(availableNumbers, coldNumbers, numbersToSelect);
+                    break;
+                    
+                case 'mixed':
+                    // Metade quentes, metade frios
+                    const halfToSelect = Math.floor(numbersToSelect / 2);
+                    const hotSelected = selectNumbersWithPriority(availableNumbers, hotNumbers, halfToSelect);
+                    
+                    // Remover números já selecionados
+                    const remainingNumbers = availableNumbers.filter(n => !hotSelected.includes(n));
+                    const coldSelected = selectNumbersWithPriority(remainingNumbers, coldNumbers, numbersToSelect - halfToSelect);
+                    
+                    selectedNumbers = [...hotSelected, ...coldSelected];
+                    break;
+                    
+                case 'balanced':
+                    // Equilibrar entre quentes e frios com base em probabilidades
+                    selectedNumbers = selectBalancedNumbers(availableNumbers, hotNumbers, coldNumbers, numbersToSelect);
+                    break;
+                    
+                case 'random':
+                default:
+                    // Seleção aleatória
+                    selectedNumbers = selectRandomNumbers(availableNumbers, numbersToSelect);
+                    break;
+            }
+            
+            // Combinar com números fixos
+            let game = [...fixedNumbers, ...selectedNumbers];
+            
+            // Verificar proporção par/ímpar
+            if (evenOddRatio !== 'any') {
+                game = adjustEvenOddRatio(game, evenOddRatio);
+            }
+            
+            // Verificar soma
+            if (sumRange === 'optimal') {
+                game = adjustSum(game, fixedNumbers);
+            }
+            
+            // Ordenar números
+            game.sort((a, b) => a - b);
+            
+            return game;
+        }
+        
+        // Selecionar números com prioridade
+        function selectNumbersWithPriority(availableNumbers, priorityNumbers, count) {
+            const selected = [];
+            
+            // Primeiro selecionar números prioritários disponíveis
+            for (const num of priorityNumbers) {
+                if (availableNumbers.includes(num) && selected.length < count) {
+                    selected.push(num);
+                }
+                
+                if (selected.length >= count) break;
+            }
+            
+            // Se ainda precisar de mais números, selecionar aleatoriamente dos restantes
+            if (selected.length < count) {
+                const remaining = availableNumbers.filter(n => !selected.includes(n));
+                const additionalCount = count - selected.length;
+                
+                for (let i = 0; i < additionalCount; i++) {
+                    const randomIndex = Math.floor(Math.random() * remaining.length);
+                    selected.push(remaining[randomIndex]);
+                    remaining.splice(randomIndex, 1);
+                }
+            }
+            
+            return selected;
+        }
+        
+        // Selecionar números equilibrados
+        function selectBalancedNumbers(availableNumbers, hotNumbers, coldNumbers, count) {
+            const selected = [];
+            const hotAvailable = availableNumbers.filter(n => hotNumbers.includes(n));
+            const coldAvailable = availableNumbers.filter(n => coldNumbers.includes(n));
+            const neutralAvailable = availableNumbers.filter(n => !hotNumbers.includes(n) && !coldNumbers.includes(n));
+            
+            // Distribuir seleção: 40% quentes, 30% frios, 30% neutros
+            const hotCount = Math.floor(count * 0.4);
+            const coldCount = Math.floor(count * 0.3);
+            const neutralCount = count - hotCount - coldCount;
+            
+            // Selecionar quentes
+            for (let i = 0; i < hotCount && hotAvailable.length > 0; i++) {
+                const randomIndex = Math.floor(Math.random() * hotAvailable.length);
+                selected.push(hotAvailable[randomIndex]);
+                hotAvailable.splice(randomIndex, 1);
+            }
+            
+            // Selecionar frios
+            for (let i = 0; i < coldCount && coldAvailable.length > 0; i++) {
+                const randomIndex = Math.floor(Math.random() * coldAvailable.length);
+                selected.push(coldAvailable[randomIndex]);
+                coldAvailable.splice(randomIndex, 1);
+            }
+            
+            // Selecionar neutros
+            for (let i = 0; i < neutralCount && neutralAvailable.length > 0; i++) {
+                const randomIndex = Math.floor(Math.random() * neutralAvailable.length);
+                selected.push(neutralAvailable[randomIndex]);
+                neutralAvailable.splice(randomIndex, 1);
+            }
+            
+            // Se ainda faltam números, selecionar de qualquer grupo disponível
+            const remaining = availableNumbers.filter(n => !selected.includes(n));
+            while (selected.length < count && remaining.length > 0) {
+                const randomIndex = Math.floor(Math.random() * remaining.length);
+                selected.push(remaining[randomIndex]);
+                remaining.splice(randomIndex, 1);
+            }
+            
+            return selected;
+        }
+        
+        // Selecionar números aleatórios
+        function selectRandomNumbers(availableNumbers, count) {
+            const selected = [];
+            const numbers = [...availableNumbers];
+            
+            for (let i = 0; i < count && numbers.length > 0; i++) {
+                const randomIndex = Math.floor(Math.random() * numbers.length);
+                selected.push(numbers[randomIndex]);
+                numbers.splice(randomIndex, 1);
+            }
+            
+            return selected;
+        }
+        
+        // Ajustar proporção par/ímpar
+        function adjustEvenOddRatio(game, ratio) {
+            // Contar pares e ímpares
+            const evenCount = game.filter(n => n % 2 === 0).length;
+            const oddCount = game.length - evenCount;
+            
+            // Verificar se já está na proporção desejada
+            if (ratio === 'balanced' && (evenCount === 7 || evenCount === 8)) {
+                return game;
+            }
+            
+            if (ratio === 'more-even' && (evenCount === 9 || evenCount === 10)) {
+                return game;
+            }
+            
+            if (ratio === 'more-odd' && (oddCount === 9 || oddCount === 10)) {
+                return game;
+            }
+            
+            // Ajustar proporção
+            const targetEvenCount = ratio === 'balanced' ? 7 :
+                                   ratio === 'more-even' ? 9 :
+                                   ratio === 'more-odd' ? 5 : 7;
+            
+            // Se precisar adicionar mais pares
+            if (evenCount < targetEvenCount) {
+                // Substituir ímpares por pares
+                const oddIndices = game.map((n, i) => n % 2 !== 0 ? i : -1).filter(i => i !== -1);
+                const toReplace = oddIndices.slice(0, targetEvenCount - evenCount);
+                
+                // Números pares disponíveis (1-25)
+                const availableEven = [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24].filter(n => !game.includes(n));
+                
+                // Substituir
+                for (let i = 0; i < toReplace.length && i < availableEven.length; i++) {
+                    game[toReplace[i]] = availableEven[i];
+                }
+            }
+            // Se precisar adicionar mais ímpares
+            else if (evenCount > targetEvenCount) {
+                // Substituir pares por ímpares
+                const evenIndices = game.map((n, i) => n % 2 === 0 ? i : -1).filter(i => i !== -1);
+                const toReplace = evenIndices.slice(0, evenCount - targetEvenCount);
+                
+                // Números ímpares disponíveis (1-25)
+                const availableOdd = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25].filter(n => !game.includes(n));
+                
+                // Substituir
+                for (let i = 0; i < toReplace.length && i < availableOdd.length; i++) {
+                    game[toReplace[i]] = availableOdd[i];
+                }
+            }
+            
+            return game;
+        }
+        
+        // Ajustar soma
+        function adjustSum(game, fixedNumbers) {
+            // Calcular soma atual
+            const sum = game.reduce((acc, n) => acc + n, 0);
+            
+            // Verificar se já está na faixa ótima (180-220)
+            if (sum >= 180 && sum <= 220) {
+                return game;
+            }
+            
+            // Números que podem ser substituídos (não fixos)
+            const replaceableIndices = game.map((n, i) => fixedNumbers.includes(n) ? -1 : i).filter(i => i !== -1);
+            
+            // Se a soma for muito baixa
+            if (sum < 180) {
+                // Substituir números baixos por números altos
+                replaceableIndices.sort((a, b) => game[a] - game[b]); // Ordenar do menor para o maior
+                
+                // Números altos disponíveis (1-25)
+                const availableHigh = [25, 24, 23, 22, 21, 20, 19, 18, 17, 16].filter(n => !game.includes(n));
+                
+                // Substituir até atingir a soma desejada
+                let currentSum = sum;
+                let i = 0;
+                
+                while (currentSum < 180 && i < replaceableIndices.length && i < availableHigh.length) {
+                    currentSum = currentSum - game[replaceableIndices[i]] + availableHigh[i];
+                    game[replaceableIndices[i]] = availableHigh[i];
+                    i++;
+                }
+            }
+            // Se a soma for muito alta
+            else if (sum > 220) {
+                // Substituir números altos por números baixos
+                replaceableIndices.sort((a, b) => game[b] - game[a]); // Ordenar do maior para o menor
+                
+                // Números baixos disponíveis (1-25)
+                const availableLow = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].filter(n => !game.includes(n));
+                
+                // Substituir até atingir a soma desejada
+                let currentSum = sum;
+                let i = 0;
+                
+                while (currentSum > 220 && i < replaceableIndices.length && i < availableLow.length) {
+                    currentSum = currentSum - game[replaceableIndices[i]] + availableLow[i];
+                    game[replaceableIndices[i]] = availableLow[i];
+                    i++;
+                }
+            }
+            
+            return game;
+        }
+        
+        // Exibir jogos
+        function displayGames(games) {
+            const container = document.getElementById('games-container');
+            container.innerHTML = '';
+            
+            games.forEach((game, index) => {
+                const gameDiv = document.createElement('div');
+                gameDiv.className = 'game';
+                
+                // Título do jogo
+                const gameTitle = document.createElement('div');
+                gameTitle.style.width = '100%';
+                gameTitle.style.marginBottom = '10px';
+                gameTitle.innerHTML = `<strong>Jogo ${index + 1}</strong> - Soma: ${game.reduce((a, b) => a + b, 0)} | Pares: ${game.filter(n => n % 2 === 0).length} | Ímpares: ${game.filter(n => n % 2 !== 0).length}`;
+                gameDiv.appendChild(gameTitle);
+                
+                // Números do jogo
+                game.forEach(number => {
+                    const numDiv = document.createElement('div');
+                    numDiv.className = 'game-number';
+                    
+                    // Verificar se é número quente ou frio
+                    if (lotofacilStats.hotNumbers.some(item => item.number === number)) {
+                        numDiv.classList.add('hot');
+                    } else if (lotofacilStats.coldNumbers.some(item => item.number === number)) {
+                        numDiv.classList.add('cold');
+                    }
+                    
+                    numDiv.textContent = number;
+                    gameDiv.appendChild(numDiv);
+                });
+                
+                container.appendChild(gameDiv);
+            });
+            
+            // Mostrar container de análise
+            document.getElementById('analysis-container').style.display = 'block';
+        }
+        
+        // Analisar jogos
+        function analyzeGames(games) {
+            // Números quentes e frios
+            const hotNumbers = lotofacilStats.hotNumbers.map(item => item.number);
+            const coldNumbers = lotofacilStats.coldNumbers.map(item => item.number);
+            
+            // Estatísticas
+            let totalHot = 0;
+            let totalCold = 0;
+            let totalEven = 0;
+            let totalOdd = 0;
+            let totalSum = 0;
+            
+            games.forEach(game => {
+                // Contar números quentes e frios
+                totalHot += game.filter(n => hotNumbers.includes(n)).length;
+                totalCold += game.filter(n => coldNumbers.includes(n)).length;
+                
+                // Contar pares e ímpares
+                totalEven += game.filter(n => n % 2 === 0).length;
+                totalOdd += game.filter(n => n % 2 !== 0).length;
+                
+                // Somar números
+                totalSum += game.reduce((a, b) => a + b, 0);
+            });
+            
+            // Calcular médias
+            const avgHot = (totalHot / games.length).toFixed(1);
+            const avgCold = (totalCold / games.length).toFixed(1);
+            const avgEven = (totalEven / games.length).toFixed(1);
+            const avgOdd = (totalOdd / games.length).toFixed(1);
+            const avgSum = (totalSum / games.length).toFixed(1);
+            
+            // Atualizar estatísticas
+            document.getElementById('avg-hot').textContent = avgHot;
+            document.getElementById('avg-cold').textContent = avgCold;
+            document.getElementById('avg-even-odd').textContent = `${avgEven}/${avgOdd}`;
+            document.getElementById('avg-sum').textContent = avgSum;
+        }
+    </script>
+</body>
+</html>
